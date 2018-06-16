@@ -1,0 +1,227 @@
+# Copyright (C) 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994,
+#     1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+#     2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
+#     Massachusetts Institute of Technology
+#
+# This file is part of MIT/GNU Scheme.
+#
+# MIT/GNU Scheme is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of the
+# License, or (at your option) any later version.
+#
+# MIT/GNU Scheme is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with MIT/GNU Scheme; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+# 02110-1301, USA.
+
+# Standard Makefile for Scheme subsystem directories.
+# This makefile supports some utilities for Scheme subsystems.
+# Tools to rebuild these subsystems are written in Scheme and do not
+# use `make'.
+
+# **** BEGIN BOILERPLATE ****
+
+SHELL = @SHELL@
+
+@SET_MAKE@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datarootdir = @datarootdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
+
+DESTDIR =
+top_builddir = @top_builddir@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+INSTALL_COM = @INSTALL_COM@
+
+LN_S = @LN_S@
+ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
+mkinstalldirs = $(SHELL) $(top_srcdir)/microcode/mkinstalldirs
+
+# **** END BOILERPLATE ****
+
+CC = @CC@
+CCLD = @CCLD@
+
+DEFS = @DEFS@
+CFLAGS = @CFLAGS@
+CPPFLAGS = @CPPFLAGS@ -I../lib
+LDFLAGS = @LDFLAGS@
+
+COMPILE = $(CC) $(DEFS) $(CPPFLAGS) $(CFLAGS)
+LINK = $(CCLD) $(LDFLAGS) -o $@
+
+AUXDIR = @AUXDIR@
+
+all:
+	echo "No ALL action"
+
+mostlyclean clean distclean maintainer-clean:
+	./Clean.sh $@
+
+tags TAGS:
+	./Tags.sh
+
+stage1:
+	./Stage.sh make 1
+
+unstage1:
+	./Stage.sh unmake 1
+
+stage2:
+	./Stage.sh make 2
+
+unstage2:
+	./Stage.sh unmake 2
+
+stage3:
+	./Stage.sh make 3
+
+unstage3:
+	./Stage.sh unmake 3
+
+EDDIR = $(AUXDIR)/edwin
+EDOPTS = debian-changelog eystep lisppaste manual midas nntp paredit pasmod \
+	 print pwedit pwparse snr sort techinfo telnet tximod verilog vhdl \
+	 webster
+
+install:
+	rm -rf $(DESTDIR)$(EDDIR)
+	$(mkinstalldirs) $(DESTDIR)$(EDDIR)
+	$(INSTALL_DATA) *.pkd *.bci $(DESTDIR)$(EDDIR)/.
+	@for F in $(EDOPTS); do \
+	    CMD="$(INSTALL_COM) $${F}.com $(DESTDIR)$(EDDIR)/.";\
+	    echo "$${CMD}"; eval "$${CMD}";\
+	done
+
+.c.o:
+	@$(top_builddir)/microcode/liarc-cc $@ $< -I$(top_builddir)/microcode
+
+compile-liarc-bundle: edwin.so
+
+edwin.so: edwin-init.o edwin-os2.o edwin-unx.o edwin-w32.o abbrev.o argred.o \
+	  autold.o autosv.o basic.o bufcom.o buffer.o buffrm.o bufinp.o \
+	  bufmnu.o bufout.o bufset.o bufwfs.o bufwin.o bufwiu.o bufwmc.o \
+	  c-mode.o calias.o cinden.o class.o clscon.o clsmac.o comatch.o \
+	  comhst.o comint.o comman.o compile.o comred.o comtab.o comwin.o \
+	  curren.o dabbrev.o debian-changelog.o debug.o debuge.o diff.o \
+	  dired.o dirunx.o display.o docstr.o editor.o edtfrm.o edtstr.o \
+	  edwin.o evlcom.o eystep.o filcom.o fileio.o fill.o grpops.o \
+	  hlpcom.o htmlmode.o image.o info.o input.o intmod.o iserch.o \
+	  javamode.o key-x11.o keymap.o keyparse.o kilcom.o kmacro.o lincom.o \
+	  linden.o lisppaste.o loadef.o lspcom.o macros.o make.o malias.o \
+	  manual.o midas.o modefs.o modes.o modlin.o modwin.o motcom.o \
+	  motion.o mousecom.o nntp.o notify.o nvector.o occur.o outline.o \
+	  paredit.o pasmod.o paths.o print.o process.o prompt.o pwedit.o \
+	  pwparse.o rcsparse.o reccom.o regcom.o regexp.o regops.o rename.o \
+	  replaz.o rfc822.o ring.o rmail.o rmailsrt.o rmailsum.o schmod.o \
+	  scrcom.o screen.o search.o sendmail.o sercom.o shell.o simple.o \
+	  snr.o sort.o strpad.o strtab.o struct.o syntax.o tagutl.o \
+	  techinfo.o telnet.o termcap.o texcom.o things.o tparse.o tterm.o \
+	  tximod.o txtprp.o undo.o unix.o utils.o utlwin.o vc.o vc-bzr.o \
+	  vc-cvs.o vc-git.o vc-rcs.o vc-svn.o verilog.o vhdl.o webster.o \
+	  wincom.o window.o winout.o winren.o xcom.o xform.o xmodef.o xterm.o
+	@$(top_builddir)/microcode/liarc-ld $@ edwin-init.o edwin-os2.o \
+	  edwin-unx.o edwin-w32.o abbrev.o argred.o autold.o autosv.o basic.o \
+	  bufcom.o buffer.o buffrm.o bufinp.o bufmnu.o bufout.o bufset.o \
+	  bufwfs.o bufwin.o bufwiu.o bufwmc.o c-mode.o calias.o cinden.o \
+	  class.o clscon.o clsmac.o comatch.o comhst.o comint.o comman.o \
+	  compile.o comred.o comtab.o comwin.o curren.o dabbrev.o \
+	  debian-changelog.o debug.o debuge.o diff.o dired.o dirunx.o \
+	  display.o docstr.o editor.o edtfrm.o edtstr.o edwin.o evlcom.o \
+	  eystep.o filcom.o fileio.o fill.o grpops.o hlpcom.o htmlmode.o \
+	  image.o info.o input.o intmod.o iserch.o javamode.o key-x11.o \
+	  keymap.o keyparse.o kilcom.o kmacro.o lincom.o linden.o lisppaste.o \
+	  loadef.o lspcom.o macros.o make.o malias.o manual.o midas.o \
+	  modefs.o modes.o modlin.o modwin.o motcom.o motion.o mousecom.o \
+	  nntp.o notify.o nvector.o occur.o outline.o paredit.o pasmod.o \
+	  paths.o print.o process.o prompt.o pwedit.o pwparse.o rcsparse.o \
+	  reccom.o regcom.o regexp.o regops.o rename.o replaz.o rfc822.o \
+	  ring.o rmail.o rmailsrt.o rmailsum.o schmod.o scrcom.o screen.o \
+	  search.o sendmail.o sercom.o shell.o simple.o snr.o sort.o strpad.o \
+	  strtab.o struct.o syntax.o tagutl.o techinfo.o telnet.o termcap.o \
+	  texcom.o things.o tparse.o tterm.o tximod.o txtprp.o undo.o unix.o \
+	  utils.o utlwin.o vc.o vc-bzr.o vc-cvs.o vc-git.o vc-rcs.o vc-svn.o \
+	  verilog.o vhdl.o webster.o wincom.o window.o winout.o winren.o \
+	  xcom.o xform.o xmodef.o xterm.o
+
+edwin-init.c: edwin-os2.c edwin-unx.c edwin-w32.c abbrev.c argred.c autold.c \
+	  autosv.c basic.c bufcom.c buffer.c buffrm.c bufinp.c bufmnu.c \
+	  bufout.c bufset.c bufwfs.c bufwin.c bufwiu.c bufwmc.c c-mode.c \
+	  calias.c cinden.c class.c clscon.c clsmac.c comatch.c comhst.c \
+	  comint.c comman.c compile.c comred.c comtab.c comwin.c curren.c \
+	  dabbrev.c debian-changelog.c debug.c debuge.c diff.c dired.c \
+	  dirunx.c display.c docstr.c editor.c edtfrm.c edtstr.c edwin.c \
+	  evlcom.c eystep.c filcom.c fileio.c fill.c grpops.c hlpcom.c \
+	  htmlmode.c image.c info.c input.c intmod.c iserch.c javamode.c \
+	  key-x11.c keymap.c keyparse.c kilcom.c kmacro.c lincom.c linden.c \
+	  lisppaste.c loadef.c lspcom.c macros.c make.c malias.c manual.c \
+	  midas.c modefs.c modes.c modlin.c modwin.c motcom.c motion.c \
+	  mousecom.c nntp.c notify.c nvector.c occur.c outline.c paredit.c \
+	  pasmod.c paths.c print.c process.c prompt.c pwedit.c pwparse.c \
+	  rcsparse.c reccom.c regcom.c regexp.c regops.c rename.c replaz.c \
+	  rfc822.c ring.c rmail.c rmailsrt.c rmailsum.c schmod.c scrcom.c \
+	  screen.c search.c sendmail.c sercom.c shell.c simple.c snr.c sort.c \
+	  strpad.c strtab.c struct.c syntax.c tagutl.c techinfo.c telnet.c \
+	  termcap.c texcom.c things.c tparse.c tterm.c tximod.c txtprp.c \
+	  undo.c unix.c utils.c utlwin.c vc.c vc-bzr.c vc-cvs.c vc-git.c \
+	  vc-rcs.c vc-svn.c verilog.c vhdl.c webster.c wincom.c window.c \
+	  winout.c winren.c xcom.c xform.c xmodef.c xterm.c
+	$(top_srcdir)/etc/c-bundle.sh $(top_builddir)/microcode library \
+	  edwin-init edwin-os2.c edwin-unx.c edwin-w32.c abbrev.c argred.c \
+	  autold.c autosv.c basic.c bufcom.c buffer.c buffrm.c bufinp.c \
+	  bufmnu.c bufout.c bufset.c bufwfs.c bufwin.c bufwiu.c bufwmc.c \
+	  c-mode.c calias.c cinden.c class.c clscon.c clsmac.c comatch.c \
+	  comhst.c comint.c comman.c compile.c comred.c comtab.c comwin.c \
+	  curren.c dabbrev.c debian-changelog.c debug.c debuge.c diff.c \
+	  dired.c dirunx.c display.c docstr.c editor.c edtfrm.c edtstr.c \
+	  edwin.c evlcom.c eystep.c filcom.c fileio.c fill.c grpops.c \
+	  hlpcom.c htmlmode.c image.c info.c input.c intmod.c iserch.c \
+	  javamode.c key-x11.c keymap.c keyparse.c kilcom.c kmacro.c lincom.c \
+	  linden.c lisppaste.c loadef.c lspcom.c macros.c make.c malias.c \
+	  manual.c midas.c modefs.c modes.c modlin.c modwin.c motcom.c \
+	  motion.c mousecom.c nntp.c notify.c nvector.c occur.c outline.c \
+	  paredit.c pasmod.c paths.c print.c process.c prompt.c pwedit.c \
+	  pwparse.c rcsparse.c reccom.c regcom.c regexp.c regops.c rename.c \
+	  replaz.c rfc822.c ring.c rmail.c rmailsrt.c rmailsum.c schmod.c \
+	  scrcom.c screen.c search.c sendmail.c sercom.c shell.c simple.c \
+	  snr.c sort.c strpad.c strtab.c struct.c syntax.c tagutl.c \
+	  techinfo.c telnet.c termcap.c texcom.c things.c tparse.c tterm.c \
+	  tximod.c txtprp.c undo.c unix.c utils.c utlwin.c vc.c vc-bzr.c \
+	  vc-cvs.c vc-git.c vc-rcs.c vc-svn.c verilog.c vhdl.c webster.c \
+	  wincom.c window.c winout.c winren.c xcom.c xform.c xmodef.c xterm.c
+
+install-liarc-bundle: edwin.so
+	$(mkinstalldirs) $(DESTDIR)$(AUXDIR)/lib
+	$(INSTALL_DATA) edwin.so $(DESTDIR)$(AUXDIR)/lib/.
+
+.PHONY: compile-liarc-bundle install-liarc-bundle
+
+.PHONY: all mostlyclean clean distclean maintainer-clean tags TAGS
+.PHONY: stage1 unstage1 stage2 unstage2 stage3 unstage3 install

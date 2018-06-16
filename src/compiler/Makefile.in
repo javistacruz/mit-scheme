@@ -1,0 +1,278 @@
+# Copyright (C) 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994,
+#     1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+#     2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
+#     Massachusetts Institute of Technology
+#
+# This file is part of MIT/GNU Scheme.
+#
+# MIT/GNU Scheme is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of the
+# License, or (at your option) any later version.
+#
+# MIT/GNU Scheme is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with MIT/GNU Scheme; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+# 02110-1301, USA.
+
+# Standard Makefile for Scheme subsystem directories.
+# This makefile supports some utilities for Scheme subsystems.
+# Tools to rebuild these subsystems are written in Scheme and do not
+# use `make'.
+
+# **** BEGIN BOILERPLATE ****
+
+SHELL = @SHELL@
+
+@SET_MAKE@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datarootdir = @datarootdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
+
+DESTDIR =
+top_builddir = @top_builddir@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+INSTALL_COM = @INSTALL_COM@
+
+LN_S = @LN_S@
+ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
+mkinstalldirs = $(SHELL) $(top_srcdir)/microcode/mkinstalldirs
+
+# **** END BOILERPLATE ****
+
+CC = @CC@
+CCLD = @CCLD@
+
+DEFS = @DEFS@
+CFLAGS = @CFLAGS@
+CPPFLAGS = @CPPFLAGS@ -I../lib
+LDFLAGS = @LDFLAGS@
+
+COMPILE = $(CC) $(DEFS) $(CPPFLAGS) $(CFLAGS)
+LINK = $(CCLD) $(LDFLAGS) -o $@
+
+AUXDIR = @AUXDIR@
+
+all:
+	echo "No ALL action"
+
+mostlyclean clean distclean maintainer-clean:
+	./Clean.sh $@
+
+tags TAGS:
+	./Tags.sh
+
+stage1:
+	./Stage.sh make 1
+
+unstage1:
+	./Stage.sh unmake 1
+
+stage2:
+	./Stage.sh make 2
+
+unstage2:
+	./Stage.sh unmake 2
+
+stage3:
+	./Stage.sh make 3
+
+unstage3:
+	./Stage.sh unmake 3
+
+COMPILER_DIR = $(AUXDIR)/compiler
+BACK_DIR = $(COMPILER_DIR)/back
+BASE_DIR = $(COMPILER_DIR)/base
+FGGEN_DIR = $(COMPILER_DIR)/fggen
+FGOPT_DIR = $(COMPILER_DIR)/fgopt
+MACHINE_DIR = $(COMPILER_DIR)/machine
+MACHINES_DIR = $(COMPILER_DIR)/machines
+RTLBASE_DIR = $(COMPILER_DIR)/rtlbase
+RTLGEN_DIR = $(COMPILER_DIR)/rtlgen
+RTLOPT_DIR = $(COMPILER_DIR)/rtlopt
+
+install:
+	$(mkinstalldirs) $(DESTDIR)$(COMPILER_DIR)
+	$(mkinstalldirs) $(DESTDIR)$(BACK_DIR)
+	$(mkinstalldirs) $(DESTDIR)$(BASE_DIR)
+	$(mkinstalldirs) $(DESTDIR)$(FGGEN_DIR)
+	$(mkinstalldirs) $(DESTDIR)$(FGOPT_DIR)
+	$(mkinstalldirs) $(DESTDIR)$(RTLBASE_DIR)
+	$(mkinstalldirs) $(DESTDIR)$(RTLGEN_DIR)
+	$(mkinstalldirs) $(DESTDIR)$(RTLOPT_DIR)
+	$(INSTALL_DATA) compiler-*.pkd $(DESTDIR)$(COMPILER_DIR)/.
+	cd back ; $(INSTALL_COM) *.com $(DESTDIR)$(BACK_DIR)/.
+	cd back ; $(INSTALL_DATA) *.bci $(DESTDIR)$(BACK_DIR)/.
+	cd base ; $(INSTALL_COM) *.com $(DESTDIR)$(BASE_DIR)/.
+	cd base ; $(INSTALL_DATA) *.bci $(DESTDIR)$(BASE_DIR)/.
+	cd fggen ; $(INSTALL_COM) *.com $(DESTDIR)$(FGGEN_DIR)/.
+	cd fggen ; $(INSTALL_DATA) *.bci $(DESTDIR)$(FGGEN_DIR)/.
+	cd fgopt ; $(INSTALL_COM) *.com $(DESTDIR)$(FGOPT_DIR)/.
+	cd fgopt ; $(INSTALL_DATA) *.bci $(DESTDIR)$(FGOPT_DIR)/.
+	cd rtlbase ; $(INSTALL_COM) *.com $(DESTDIR)$(RTLBASE_DIR)/.
+	cd rtlbase ; $(INSTALL_DATA) *.bci $(DESTDIR)$(RTLBASE_DIR)/.
+	cd rtlgen ; $(INSTALL_COM) *.com $(DESTDIR)$(RTLGEN_DIR)/.
+	cd rtlgen ; $(INSTALL_DATA) *.bci $(DESTDIR)$(RTLGEN_DIR)/.
+	cd rtlopt ; $(INSTALL_COM) *.com $(DESTDIR)$(RTLOPT_DIR)/.
+	cd rtlopt ; $(INSTALL_DATA) *.bci $(DESTDIR)$(RTLOPT_DIR)/.
+
+
+.c.o:
+	@$(top_builddir)/microcode/liarc-cc $@ $< -I$(top_builddir)/microcode
+
+compile-liarc-bundle: compiler.so
+
+compiler.so: compiler-init.o compiler-os2.o compiler-unx.o compiler-w32.o \
+	  back/insseq.o back/lapgn1.o back/lapgn2.o back/linear.o \
+	  back/mermap.o back/regmap.o base/blocks.o base/cfg1.o base/cfg2.o \
+	  base/cfg3.o base/constr.o base/contin.o base/ctypes.o base/debug.o \
+	  base/enumer.o base/infnew.o base/lvalue.o base/macros.o base/make.o \
+	  base/mvalue.o base/object.o base/pmerly.o base/pmlook.o \
+	  base/pmpars.o base/proced.o base/refctx.o base/rvalue.o \
+	  base/scode.o base/sets.o base/subprb.o base/switch.o base/toplev.o \
+	  base/utils.o fggen/canon.o fggen/declar.o fggen/fggen.o \
+	  fgopt/blktyp.o fgopt/closan.o fgopt/conect.o fgopt/contan.o \
+	  fgopt/delint.o fgopt/desenv.o fgopt/envopt.o fgopt/folcon.o \
+	  fgopt/offset.o fgopt/operan.o fgopt/order.o fgopt/outer.o \
+	  fgopt/param.o fgopt/reord.o fgopt/reteqv.o fgopt/reuse.o \
+	  fgopt/sideff.o fgopt/simapp.o fgopt/simple.o fgopt/subfre.o \
+	  fgopt/varind.o machines/C/cout.o machines/C/ctop.o \
+	  machines/C/cutl.o machines/C/decls.o machines/C/lapgen.o \
+	  machines/C/machin.o machines/C/make.o machines/C/rgspcm.o \
+	  machines/C/rules1.o machines/C/rules2.o machines/C/rules3.o \
+	  machines/C/rules4.o machines/C/rulfix.o machines/C/rulflo.o \
+	  machines/C/rulrew.o machines/C/stackify.o machines/C/stackops.o \
+	  machines/C/traditional.o rtlbase/regset.o rtlbase/rgraph.o \
+	  rtlbase/rtlcfg.o rtlbase/rtlcon.o rtlbase/rtlexp.o rtlbase/rtline.o \
+	  rtlbase/rtlobj.o rtlbase/rtlreg.o rtlbase/rtlty1.o rtlbase/rtlty2.o \
+	  rtlbase/valclass.o rtlgen/fndblk.o rtlgen/fndvar.o rtlgen/opncod.o \
+	  rtlgen/rgcomb.o rtlgen/rgproc.o rtlgen/rgretn.o rtlgen/rgrval.o \
+	  rtlgen/rgstmt.o rtlgen/rtlgen.o rtlopt/ralloc.o rtlopt/rcompr.o \
+	  rtlopt/rcse1.o rtlopt/rcse2.o rtlopt/rcseep.o rtlopt/rcseht.o \
+	  rtlopt/rcserq.o rtlopt/rcsesr.o rtlopt/rdebug.o rtlopt/rdflow.o \
+	  rtlopt/rerite.o rtlopt/rinvex.o rtlopt/rlife.o rtlopt/rtlcsm.o
+	@$(top_builddir)/microcode/liarc-ld $@ compiler-init.o compiler-os2.o \
+	  compiler-unx.o compiler-w32.o back/insseq.o back/lapgn1.o \
+	  back/lapgn2.o back/linear.o back/mermap.o back/regmap.o \
+	  base/blocks.o base/cfg1.o base/cfg2.o base/cfg3.o base/constr.o \
+	  base/contin.o base/ctypes.o base/debug.o base/enumer.o \
+	  base/infnew.o base/lvalue.o base/macros.o base/make.o base/mvalue.o \
+	  base/object.o base/pmerly.o base/pmlook.o base/pmpars.o \
+	  base/proced.o base/refctx.o base/rvalue.o base/scode.o base/sets.o \
+	  base/subprb.o base/switch.o base/toplev.o base/utils.o \
+	  fggen/canon.o fggen/declar.o fggen/fggen.o fgopt/blktyp.o \
+	  fgopt/closan.o fgopt/conect.o fgopt/contan.o fgopt/delint.o \
+	  fgopt/desenv.o fgopt/envopt.o fgopt/folcon.o fgopt/offset.o \
+	  fgopt/operan.o fgopt/order.o fgopt/outer.o fgopt/param.o \
+	  fgopt/reord.o fgopt/reteqv.o fgopt/reuse.o fgopt/sideff.o \
+	  fgopt/simapp.o fgopt/simple.o fgopt/subfre.o fgopt/varind.o \
+	  machines/C/cout.o machines/C/ctop.o machines/C/cutl.o \
+	  machines/C/decls.o machines/C/lapgen.o machines/C/machin.o \
+	  machines/C/make.o machines/C/rgspcm.o machines/C/rules1.o \
+	  machines/C/rules2.o machines/C/rules3.o machines/C/rules4.o \
+	  machines/C/rulfix.o machines/C/rulflo.o machines/C/rulrew.o \
+	  machines/C/stackify.o machines/C/stackops.o \
+	  machines/C/traditional.o rtlbase/regset.o rtlbase/rgraph.o \
+	  rtlbase/rtlcfg.o rtlbase/rtlcon.o rtlbase/rtlexp.o rtlbase/rtline.o \
+	  rtlbase/rtlobj.o rtlbase/rtlreg.o rtlbase/rtlty1.o rtlbase/rtlty2.o \
+	  rtlbase/valclass.o rtlgen/fndblk.o rtlgen/fndvar.o rtlgen/opncod.o \
+	  rtlgen/rgcomb.o rtlgen/rgproc.o rtlgen/rgretn.o rtlgen/rgrval.o \
+	  rtlgen/rgstmt.o rtlgen/rtlgen.o rtlopt/ralloc.o rtlopt/rcompr.o \
+	  rtlopt/rcse1.o rtlopt/rcse2.o rtlopt/rcseep.o rtlopt/rcseht.o \
+	  rtlopt/rcserq.o rtlopt/rcsesr.o rtlopt/rdebug.o rtlopt/rdflow.o \
+	  rtlopt/rerite.o rtlopt/rinvex.o rtlopt/rlife.o rtlopt/rtlcsm.o
+
+compiler-init.c: compiler-os2.c compiler-unx.c compiler-w32.c back/insseq.c \
+	  back/lapgn1.c back/lapgn2.c back/linear.c back/mermap.c \
+	  back/regmap.c base/blocks.c base/cfg1.c base/cfg2.c base/cfg3.c \
+	  base/constr.c base/contin.c base/ctypes.c base/debug.c \
+	  base/enumer.c base/infnew.c base/lvalue.c base/macros.c base/make.c \
+	  base/mvalue.c base/object.c base/pmerly.c base/pmlook.c \
+	  base/pmpars.c base/proced.c base/refctx.c base/rvalue.c \
+	  base/scode.c base/sets.c base/subprb.c base/switch.c base/toplev.c \
+	  base/utils.c fggen/canon.c fggen/declar.c fggen/fggen.c \
+	  fgopt/blktyp.c fgopt/closan.c fgopt/conect.c fgopt/contan.c \
+	  fgopt/delint.c fgopt/desenv.c fgopt/envopt.c fgopt/folcon.c \
+	  fgopt/offset.c fgopt/operan.c fgopt/order.c fgopt/outer.c \
+	  fgopt/param.c fgopt/reord.c fgopt/reteqv.c fgopt/reuse.c \
+	  fgopt/sideff.c fgopt/simapp.c fgopt/simple.c fgopt/subfre.c \
+	  fgopt/varind.c machines/C/cout.c machines/C/ctop.c \
+	  machines/C/cutl.c machines/C/decls.c machines/C/lapgen.c \
+	  machines/C/machin.c machines/C/make.c machines/C/rgspcm.c \
+	  machines/C/rules1.c machines/C/rules2.c machines/C/rules3.c \
+	  machines/C/rules4.c machines/C/rulfix.c machines/C/rulflo.c \
+	  machines/C/rulrew.c machines/C/stackify.c machines/C/stackops.c \
+	  machines/C/traditional.c rtlbase/regset.c rtlbase/rgraph.c \
+	  rtlbase/rtlcfg.c rtlbase/rtlcon.c rtlbase/rtlexp.c rtlbase/rtline.c \
+	  rtlbase/rtlobj.c rtlbase/rtlreg.c rtlbase/rtlty1.c rtlbase/rtlty2.c \
+	  rtlbase/valclass.c rtlgen/fndblk.c rtlgen/fndvar.c rtlgen/opncod.c \
+	  rtlgen/rgcomb.c rtlgen/rgproc.c rtlgen/rgretn.c rtlgen/rgrval.c \
+	  rtlgen/rgstmt.c rtlgen/rtlgen.c rtlopt/ralloc.c rtlopt/rcompr.c \
+	  rtlopt/rcse1.c rtlopt/rcse2.c rtlopt/rcseep.c rtlopt/rcseht.c \
+	  rtlopt/rcserq.c rtlopt/rcsesr.c rtlopt/rdebug.c rtlopt/rdflow.c \
+	  rtlopt/rerite.c rtlopt/rinvex.c rtlopt/rlife.c rtlopt/rtlcsm.c
+	$(top_srcdir)/etc/c-bundle.sh $(top_builddir)/microcode library \
+	  compiler-init compiler-os2.c compiler-unx.c compiler-w32.c \
+	  back/insseq.c back/lapgn1.c back/lapgn2.c back/linear.c \
+	  back/mermap.c back/regmap.c base/blocks.c base/cfg1.c base/cfg2.c \
+	  base/cfg3.c base/constr.c base/contin.c base/ctypes.c base/debug.c \
+	  base/enumer.c base/infnew.c base/lvalue.c base/macros.c base/make.c \
+	  base/mvalue.c base/object.c base/pmerly.c base/pmlook.c \
+	  base/pmpars.c base/proced.c base/refctx.c base/rvalue.c \
+	  base/scode.c base/sets.c base/subprb.c base/switch.c base/toplev.c \
+	  base/utils.c fggen/canon.c fggen/declar.c fggen/fggen.c \
+	  fgopt/blktyp.c fgopt/closan.c fgopt/conect.c fgopt/contan.c \
+	  fgopt/delint.c fgopt/desenv.c fgopt/envopt.c fgopt/folcon.c \
+	  fgopt/offset.c fgopt/operan.c fgopt/order.c fgopt/outer.c \
+	  fgopt/param.c fgopt/reord.c fgopt/reteqv.c fgopt/reuse.c \
+	  fgopt/sideff.c fgopt/simapp.c fgopt/simple.c fgopt/subfre.c \
+	  fgopt/varind.c machines/C/cout.c machines/C/ctop.c \
+	  machines/C/cutl.c machines/C/decls.c machines/C/lapgen.c \
+	  machines/C/machin.c machines/C/make.c machines/C/rgspcm.c \
+	  machines/C/rules1.c machines/C/rules2.c machines/C/rules3.c \
+	  machines/C/rules4.c machines/C/rulfix.c machines/C/rulflo.c \
+	  machines/C/rulrew.c machines/C/stackify.c machines/C/stackops.c \
+	  machines/C/traditional.c rtlbase/regset.c rtlbase/rgraph.c \
+	  rtlbase/rtlcfg.c rtlbase/rtlcon.c rtlbase/rtlexp.c rtlbase/rtline.c \
+	  rtlbase/rtlobj.c rtlbase/rtlreg.c rtlbase/rtlty1.c rtlbase/rtlty2.c \
+	  rtlbase/valclass.c rtlgen/fndblk.c rtlgen/fndvar.c rtlgen/opncod.c \
+	  rtlgen/rgcomb.c rtlgen/rgproc.c rtlgen/rgretn.c rtlgen/rgrval.c \
+	  rtlgen/rgstmt.c rtlgen/rtlgen.c rtlopt/ralloc.c rtlopt/rcompr.c \
+	  rtlopt/rcse1.c rtlopt/rcse2.c rtlopt/rcseep.c rtlopt/rcseht.c \
+	  rtlopt/rcserq.c rtlopt/rcsesr.c rtlopt/rdebug.c rtlopt/rdflow.c \
+	  rtlopt/rerite.c rtlopt/rinvex.c rtlopt/rlife.c rtlopt/rtlcsm.c
+
+install-liarc-bundle: compiler.so
+	$(mkinstalldirs) $(DESTDIR)$(AUXDIR)/lib
+	$(INSTALL_DATA) compiler.so $(DESTDIR)$(AUXDIR)/lib/.
+
+.PHONY: compile-liarc-bundle install-liarc-bundle
+
+.PHONY: all mostlyclean clean distclean maintainer-clean tags TAGS
+.PHONY: stage1 unstage1 stage2 unstage2 stage3 unstage3 install
